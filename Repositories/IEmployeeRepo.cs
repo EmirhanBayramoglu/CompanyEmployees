@@ -9,6 +9,7 @@ namespace CompanyEmployees.Repositories
         Employee GetOneEmployeeByRecordNo(string recordNo);
         public void AddEmployee(Employee employee);
         public void UpdateEmployee(Employee employee);
+        public void Save();
 
     }
 }

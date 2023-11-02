@@ -39,6 +39,7 @@ namespace CompanyEmployees.Controllers
         public ActionResult<Employee> AddEmployee(Employee employee)
         {
             _repository.AddEmployee(employee);
+            _repository.Save();
 
             return Ok();
         }

@@ -1,4 +1,5 @@
 ﻿using CompanyEmployees.Entities.Models;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
 
 namespace CompanyEmployees.Repositories
@@ -22,11 +23,14 @@ namespace CompanyEmployees.Repositories
             }
             else
             {
+
                 string pattern = "^[a-zA-Z0-9]*$";
+
                 if(Regex.IsMatch(employee.RecordNo, pattern))
                 {
-                    _context.Employees.Add(employee);
-                    _context.SaveChanges();
+
+
+                    _context.Employees.Add(employee);  
                 }
                 else
                 {
@@ -49,6 +53,45 @@ namespace CompanyEmployees.Repositories
         public void UpdateEmployee(Employee employee)
         {
             throw new NotImplementedException();
+        }
+
+        public void Save()
+        {
+            _context.SaveChanges();
+        }
+
+        public void AddingLowerEmployee(IEnumerable<string> LowwerEmployees)
+        {
+            foreach(string employee in LowwerEmployees)
+            {
+                var item = GetOneEmployeeByRecordNo(employee);
+                
+                if(item.UpperEmployee != null)
+                {
+                    throw new Exception($"This epmloyee already have a upper employee.({employee})");
+                }
+
+            }
+        }
+
+        public IEnumerable<string> LowwerEmployeeListCreator(string LowwerEmployees)
+        {
+            string pattern = "^[a-zA-Z0-9]*$";
+            //split every employee
+            var employeeList =  LowwerEmployees.Split('.');
+
+            foreach (var employee in employeeList)
+            {
+                if(employee.Length!=11 && Regex.IsMatch(employee, pattern))
+                {
+                    throw new Exception("Some lowwer employees wrong.");
+                }
+                else if(GetOneEmployeeByRecordNo(employee)==null)
+                {
+                    throw new Exception($"There is no employee with this record no: {employee}" );
+                }
+            }
+            return employeeList;
         }
     }
 }
