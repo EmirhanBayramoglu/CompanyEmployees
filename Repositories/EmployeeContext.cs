@@ -5,7 +5,8 @@ namespace CompanyEmployees.Repositories
 {
     public class EmployeeContext : DbContext
     {
-        public EmployeeContext(DbContextOptions<EmployeeContext> opt) : base(opt) 
+        public EmployeeContext(DbContextOptions opt) : 
+            base(opt) 
         {
 
         }
