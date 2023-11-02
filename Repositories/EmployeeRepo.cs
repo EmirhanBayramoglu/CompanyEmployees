@@ -26,6 +26,7 @@ namespace CompanyEmployees.Repositories
                 if(Regex.IsMatch(employee.RecordNo, pattern))
                 {
                     _context.Employees.Add(employee);
+                    _context.SaveChanges();
                 }
                 else
                 {

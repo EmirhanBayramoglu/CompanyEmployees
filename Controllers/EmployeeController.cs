@@ -1,4 +1,6 @@
-﻿using CompanyEmployees.Entities.Models;
+﻿using AutoMapper;
+using CompanyEmployees.Dto;
+using CompanyEmployees.Entities.Models;
 using CompanyEmployees.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +11,12 @@ namespace CompanyEmployees.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeRepo _repository;
+        private readonly IMapper _mapper;
 
-        public EmployeeController(IEmployeeRepo repository)
+        public EmployeeController(IEmployeeRepo repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -20,15 +24,15 @@ namespace CompanyEmployees.Controllers
         {
             var items  =  _repository.GetAllEmployee();
 
-            return Ok(items);
+            return Ok(_mapper.Map<IEnumerable<EmployeeDto>>(items));
         }
 
         [HttpGet("{RecordNo}")]
-        public ActionResult <Employee> GetOneEmployee(string RecordNo)
+        public ActionResult <EmployeeDto> GetOneEmployee(string RecordNo)
         {
             var item = _repository.GetOneEmployeeByRecordNo(RecordNo);
             
-            return Ok(item);
+            return Ok(_mapper.Map<EmployeeDto>(item));
         }
 
         [HttpPost]
