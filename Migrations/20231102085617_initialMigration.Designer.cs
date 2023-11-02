@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyEmployees.Migrations
 {
     [DbContext(typeof(EmployeeContext))]
-    [Migration("20231102082337_initialMigration")]
+    [Migration("20231102085617_initialMigration")]
     partial class initialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,11 +38,9 @@ namespace CompanyEmployees.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LowerEmployee")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UpperEmployee")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RecordNo");

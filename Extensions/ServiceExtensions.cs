@@ -10,5 +10,8 @@ namespace CompanyEmployees.Extensions
             IConfiguration configuration) => services.AddDbContext<EmployeeContext>(options =>
                                                 options.UseSqlServer(configuration.GetConnectionString("EmployeeConnetion")));
 
+        public static void ConfigureRepository(this IServiceCollection services) =>
+            services.AddScoped<IEmployeeRepo, EmployeeRepo>();
+
     }
 }

@@ -15,8 +15,8 @@ namespace CompanyEmployees.Migrations
                     RecordNo = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: false),
                     Lname = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Fname = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UpperEmployee = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LowerEmployee = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    UpperEmployee = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LowerEmployee = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

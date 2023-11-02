@@ -8,7 +8,12 @@ namespace CompanyEmployees.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private readonly EmployeeRepo _repository = new EmployeeRepo();
+        private readonly IEmployeeRepo _repository;
+
+        public EmployeeController(IEmployeeRepo repository)
+        {
+            _repository = repository;
+        }
 
         [HttpGet]
         public ActionResult <IEnumerable<Employee>> GetAllEmployee()

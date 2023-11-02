@@ -10,8 +10,8 @@ namespace CompanyEmployees.Entities.Models
         public string RecordNo { get; set; }
         public string Lname { get; set; }
         public string Fname { get; set; }
-        public string UpperEmployee { get; set; }
-        public string LowerEmployee { get; set; }
+        public string? UpperEmployee { get; set; }
+        public string? LowerEmployee { get; set; }
 
     }
 }

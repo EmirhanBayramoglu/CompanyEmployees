@@ -1,4 +1,6 @@
 ﻿using CompanyEmployees.Entities.Models;
+using CompanyEmployees.Repositories.Config;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CompanyEmployees.Repositories
@@ -12,6 +14,8 @@ namespace CompanyEmployees.Repositories
         }
 
         public DbSet<Employee> Employees { get; set; }
+
+        
 
     }
 }

@@ -5,6 +5,15 @@ namespace CompanyEmployees.Repositories
 {
     public class EmployeeRepo : IEmployeeRepo
     {
+
+        private readonly EmployeeContext _context;
+
+        public EmployeeRepo(EmployeeContext context)
+        {
+            _context = context;
+
+        }
+
         public void AddEmployee(Employee employee)
         {
             if (employee == null)
@@ -13,27 +22,27 @@ namespace CompanyEmployees.Repositories
             }
             else
             {
-                /*string pattern = "^[a-zA-Z0-9]*$";
+                string pattern = "^[a-zA-Z0-9]*$";
                 if(Regex.IsMatch(employee.RecordNo, pattern))
                 {
-                    //adding system
+                    _context.Employees.Add(employee);
                 }
                 else
                 {
                     throw new Exception("Input string should only contain alphanumeric characters.");
-                }*/
+                }
             }
             
         }
 
         public IEnumerable<Employee> GetAllEmployee()
         {
-            throw new NotImplementedException();
+            return _context.Employees.ToList();
         }
 
-        public Employee GetOneEmployeeByRecordNo(string RecordNo)
+        public Employee GetOneEmployeeByRecordNo(string recordNo)
         {
-            throw new NotImplementedException();
+            return _context.Employees.FirstOrDefault(x => x.RecordNo == recordNo);
         }
 
         public void UpdateEmployee(Employee employee)
