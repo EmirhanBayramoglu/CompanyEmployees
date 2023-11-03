@@ -44,5 +44,20 @@ namespace CompanyEmployees.Controllers
             return Ok();
         }
 
+        [HttpPut("RecordNo")]
+        public ActionResult UpdateEmployee(string recordNo,EmployeeUpdateDto employeeUpdateDto)
+        {
+            var item = _repository.GetOneEmployeeByRecordNo(recordNo);
+
+            _mapper.Map(employeeUpdateDto, item);
+
+            _repository.UpdateEmployee(item);
+            _repository.Save();
+
+            return Ok();
+        }
+
+
+
     }
 }

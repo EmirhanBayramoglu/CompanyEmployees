@@ -26,10 +26,9 @@ namespace CompanyEmployees.Repositories
 
                 string pattern = "^[a-zA-Z0-9]*$";
 
-                if(Regex.IsMatch(employee.RecordNo, pattern))
+                if(Regex.IsMatch(employee.RecordNo, pattern) && GetOneEmployeeByRecordNo(employee.RecordNo) == null)
                 {
-
-
+         
                     _context.Employees.Add(employee);  
                 }
                 else
@@ -52,7 +51,7 @@ namespace CompanyEmployees.Repositories
 
         public void UpdateEmployee(Employee employee)
         {
-            throw new NotImplementedException();
+            _context.Employees.Update(employee);
         }
 
         public void Save()
@@ -69,6 +68,11 @@ namespace CompanyEmployees.Repositories
                 if(item.UpperEmployee != null)
                 {
                     throw new Exception($"This epmloyee already have a upper employee.({employee})");
+                }
+                else
+                {
+                    item.UpperEmployee = employee;
+                    Save();
                 }
 
             }

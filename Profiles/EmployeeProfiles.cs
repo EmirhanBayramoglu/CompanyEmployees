@@ -9,6 +9,7 @@ namespace CompanyEmployees.Profiles
         public EmployeeProfiles() 
         {
             CreateMap<Employee, EmployeeDto>();
+            CreateMap<EmployeeUpdateDto, Employee>();
         }
 
     }
