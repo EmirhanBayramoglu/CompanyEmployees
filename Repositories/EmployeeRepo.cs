@@ -1,5 +1,6 @@
 ﻿using CompanyEmployees.Entities.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace CompanyEmployees.Repositories
@@ -61,9 +62,10 @@ namespace CompanyEmployees.Repositories
             _context.SaveChanges();
         }
 
-        public void AddingLowerEmployee(IEnumerable<string> LowwerEmployees,string recordNo)
+        //alt elemanları ekleme her record no arasında "." olacak tek string olarak depolanacak
+        public void AddingLowerEmployee(IEnumerable<string> LowerEmployees,string recordNo)
         {
-            foreach(string employee in LowwerEmployees)
+            foreach(string employee in LowerEmployees)
             {
                 var item = GetOneEmployeeByRecordNo(employee);
                 
@@ -80,11 +82,11 @@ namespace CompanyEmployees.Repositories
             }
         }
 
-        public IEnumerable<string> LowwerEmployeeListCreator(string LowwerEmployees)
+        public IEnumerable<string> LowwerEmployeeListCreator(string LowerEmployees)
         {
             string pattern = "^[a-zA-Z0-9]*$";
             //split every employee
-            var employeeList =  LowwerEmployees.Split('.');
+            var employeeList =  LowerEmployees.Split('.');
 
             foreach (var employee in employeeList)
             {
@@ -100,9 +102,10 @@ namespace CompanyEmployees.Repositories
             return employeeList;
         }
 
-        public void CuttingRelationLowerEmployee(IEnumerable<string> LowwerEmployees, string recordNo)
+        //bütün alt çalışanlar silinince, o alt çalışanların üstleri silinir
+        public void CuttingRelationLowerEmployee(IEnumerable<string> LowerEmployees)
         {
-            foreach(var employee in LowwerEmployees)
+            foreach(var employee in LowerEmployees)
             {
                 var item = GetOneEmployeeByRecordNo(employee);
                 item.UpperEmployee = null;
@@ -110,13 +113,14 @@ namespace CompanyEmployees.Repositories
             }
         }
 
-        public void AddingUpperEmployee(string upperEmployee)
+        //üst olarak eklenen çalışanın, kime üst eklendiyse o çalışanı üstün alt eleman kısmına ekleme
+        public void AddingUpperEmployee(string upperEmployee, string recordNumber)
         {
             var item = GetOneEmployeeByRecordNo(upperEmployee);
 
             var lowerList = LowwerEmployeeListCreator(item.LowerEmployee);
             List<string> lowerListForm = lowerList.ToList();
-            lowerListForm.Add(upperEmployee);
+            lowerListForm.Add(recordNumber);
             string lowersTurnedString = null;
 
             foreach(var lower in lowerListForm)
@@ -127,7 +131,47 @@ namespace CompanyEmployees.Repositories
             item.UpperEmployee = lowersTurnedString;
             UpdateEmployee(item);
             Save();
+        }
+
+        //bir çalışanın üst çalışanı silindiğinde, o üst çalışandan alt çalışanı çıkarma metodu
+        public void CuttingRelationUpperEmployee(string upperEmployee, string recordNumber)
+        {
+            var item = GetOneEmployeeByRecordNo(upperEmployee);
+
+            var lowerList = LowwerEmployeeListCreator(item.LowerEmployee);
+            List<string> lowerListForm = lowerList.ToList();
+            lowerListForm.Remove(recordNumber);
+            string lowersTurnedString = null;
+
+            foreach (var lower in lowerListForm)
+            {
+                lowersTurnedString = lowersTurnedString + item + ".";
+            }
+
+            item.UpperEmployee = lowersTurnedString;
+            UpdateEmployee(item);
+            Save();
+        }
+
+        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower, string recordNo)
+        {
+            List<string> cikanlar = oldLower.Except(newLower).ToList();
+            List<string> girenler = newLower.Except(oldLower).ToList();
+
+            foreach(var cikan in cikanlar)
+            {
+                CuttingRelationLowerEmployee(cikanlar);
+            }
+
+            foreach(var giren in girenler)
+            {
+                var item = GetOneEmployeeByRecordNo(giren);
+                item.UpperEmployee = recordNo;
+                Save();
+            }
+
 
         }
+
     }
 }
