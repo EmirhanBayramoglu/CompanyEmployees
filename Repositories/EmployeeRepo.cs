@@ -99,5 +99,35 @@ namespace CompanyEmployees.Repositories
             }
             return employeeList;
         }
+
+        public void CuttingRelationLowerEmployee(IEnumerable<string> LowwerEmployees, string recordNo)
+        {
+            foreach(var employee in LowwerEmployees)
+            {
+                var item = GetOneEmployeeByRecordNo(employee);
+                item.UpperEmployee = null;
+                Save();
+            }
+        }
+
+        public void AddingUpperEmployee(string upperEmployee)
+        {
+            var item = GetOneEmployeeByRecordNo(upperEmployee);
+
+            var lowerList = LowwerEmployeeListCreator(item.LowerEmployee);
+            List<string> lowerListForm = lowerList.ToList();
+            lowerListForm.Add(upperEmployee);
+            string lowersTurnedString = null;
+
+            foreach(var lower in lowerListForm)
+            {
+                lowersTurnedString = lowersTurnedString + item + ".";
+            }
+
+            item.UpperEmployee = lowersTurnedString;
+            UpdateEmployee(item);
+            Save();
+
+        }
     }
 }
