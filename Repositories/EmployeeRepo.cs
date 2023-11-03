@@ -28,7 +28,9 @@ namespace CompanyEmployees.Repositories
 
                 if(Regex.IsMatch(employee.RecordNo, pattern) && GetOneEmployeeByRecordNo(employee.RecordNo) == null)
                 {
-         
+                    if(employee.LowerEmployee != null)
+                        AddingLowerEmployee(LowwerEmployeeListCreator(employee.LowerEmployee),employee.RecordNo);
+
                     _context.Employees.Add(employee);  
                 }
                 else
@@ -59,7 +61,7 @@ namespace CompanyEmployees.Repositories
             _context.SaveChanges();
         }
 
-        public void AddingLowerEmployee(IEnumerable<string> LowwerEmployees)
+        public void AddingLowerEmployee(IEnumerable<string> LowwerEmployees,string recordNo)
         {
             foreach(string employee in LowwerEmployees)
             {
@@ -71,10 +73,10 @@ namespace CompanyEmployees.Repositories
                 }
                 else
                 {
-                    item.UpperEmployee = employee;
+                    item.UpperEmployee = recordNo;
+                    UpdateEmployee(item);
                     Save();
                 }
-
             }
         }
 

@@ -20,23 +20,23 @@ namespace CompanyEmployees.Controllers
         }
 
         [HttpGet]
-        public ActionResult <IEnumerable<Employee>> GetAllEmployee()
+        public ActionResult<IEnumerable<Employee>> GetAllEmployee()
         {
-            var items  =  _repository.GetAllEmployee();
+            var items = _repository.GetAllEmployee();
 
             return Ok(_mapper.Map<IEnumerable<EmployeeDto>>(items));
         }
 
         [HttpGet("{RecordNo}")]
-        public ActionResult <EmployeeDto> GetOneEmployee(string RecordNo)
+        public ActionResult<EmployeeDto> GetOneEmployee(string RecordNo)
         {
             var item = _repository.GetOneEmployeeByRecordNo(RecordNo);
-            
+
             return Ok(_mapper.Map<EmployeeDto>(item));
         }
 
         [HttpPost]
-        public ActionResult<Employee> AddEmployee(Employee employee)
+        public ActionResult<Employee> AddEmployee([FromBody]Employee employee)
         {
             _repository.AddEmployee(employee);
             _repository.Save();
