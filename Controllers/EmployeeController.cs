@@ -38,18 +38,25 @@ namespace CompanyEmployees.Controllers
         [HttpPost]
         public ActionResult<Employee> AddEmployee([FromBody]Employee employee)
         {
+            
             _repository.AddEmployee(employee);
             _repository.Save();
 
             return Ok();
         }
 
-        [HttpPut("RecordNo")]
+        [HttpPut("{RecordNo}")]
         public ActionResult UpdateEmployee(string recordNo,EmployeeUpdateDto employeeUpdateDto)
         {
             var item = _repository.GetOneEmployeeByRecordNo(recordNo);
 
+            var oldList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
+
             _mapper.Map(employeeUpdateDto, item);
+
+            var newList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
+
+            _repository.UpdateConfigration(oldList, newList, item);
 
             _repository.UpdateEmployee(item);
             _repository.Save();

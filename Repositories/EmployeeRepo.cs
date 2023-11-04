@@ -1,4 +1,6 @@
-﻿using CompanyEmployees.Entities.Models;
+﻿using AutoMapper;
+using CompanyEmployees.Dto;
+using CompanyEmployees.Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -29,8 +31,15 @@ namespace CompanyEmployees.Repositories
 
                 if(Regex.IsMatch(employee.RecordNo, pattern) && GetOneEmployeeByRecordNo(employee.RecordNo) == null)
                 {
-                    if(employee.LowerEmployee != null)
-                        AddingLowerEmployee(LowwerEmployeeListCreator(employee.LowerEmployee),employee.RecordNo);
+                    if (employee.LowerEmployee != null)
+                    {
+                        string lowEmp = employee.LowerEmployee;
+                        var lowEmpList = LowwerEmployeeListCreator(lowEmp);
+                        AddingLowerEmployee(lowEmpList,employee);
+                    }
+                        
+                    if (employee.UpperEmployee != null)
+                        AddingUpperEmployee(employee.UpperEmployee, employee.RecordNo);
 
                     _context.Employees.Add(employee);  
                 }
@@ -62,22 +71,29 @@ namespace CompanyEmployees.Repositories
             _context.SaveChanges();
         }
 
-        //alt elemanları ekleme her record no arasında "." olacak tek string olarak depolanacak
-        public void AddingLowerEmployee(IEnumerable<string> LowerEmployees,string recordNo)
+        
+        public void AddingLowerEmployee(IEnumerable<string> LowerEmployees, Employee employee)
         {
-            foreach(string employee in LowerEmployees)
+
+            var empl = employee;
+            foreach(string lowerEmployee in LowerEmployees)
             {
-                var item = GetOneEmployeeByRecordNo(employee);
-                
-                if(item.UpperEmployee != null)
+                var item = GetOneEmployeeByRecordNo(lowerEmployee);
+
+                if (item.UpperEmployee != null)
                 {
-                    throw new Exception($"This epmloyee already have a upper employee.({employee})");
+                    throw new Exception($"This epmloyee already have a upper employee.({lowerEmployee})");
+                }
+                else if (item.LowerEmployee != null)
+                {
+                    List<string> lowList = LowwerEmployeeListCreator(item.LowerEmployee).ToList();
+                    if (lowList.Contains(lowerEmployee))   
+                        throw new Exception($"Your upper employee can not be your lower employee.({lowerEmployee})");
                 }
                 else
                 {
-                    item.UpperEmployee = recordNo;
-                    UpdateEmployee(item);
-                    Save();
+                    item.UpperEmployee = empl.RecordNo;
+                    _context.Employees.Update(item);
                 }
             }
         }
@@ -86,20 +102,27 @@ namespace CompanyEmployees.Repositories
         {
             string pattern = "^[a-zA-Z0-9]*$";
             //split every employee
-            var employeeList =  LowerEmployees.Split('.');
-
-            foreach (var employee in employeeList)
+            if (LowerEmployees != null)
             {
-                if(employee.Length!=11 && Regex.IsMatch(employee, pattern))
+                var employeeList = ((string)LowerEmployees).Split('.');
+
+                foreach (var employee in employeeList)
                 {
-                    throw new Exception("Some lowwer employees wrong.");
+                    if (employee.Length != 11 && Regex.IsMatch(employee, pattern))
+                    {
+                        throw new Exception("Some lowwer employees wrong.");
+                    }
+                    else if (GetOneEmployeeByRecordNo(employee) == null)
+                    {
+                        throw new Exception($"There is no employee with this record no: {employee}");
+                    }
                 }
-                else if(GetOneEmployeeByRecordNo(employee)==null)
-                {
-                    throw new Exception($"There is no employee with this record no: {employee}" );
-                }
+                return employeeList;
             }
-            return employeeList;
+            else
+                return null;
+
+            
         }
 
         //bütün alt çalışanlar silinince, o alt çalışanların üstleri silinir
@@ -109,7 +132,7 @@ namespace CompanyEmployees.Repositories
             {
                 var item = GetOneEmployeeByRecordNo(employee);
                 item.UpperEmployee = null;
-                Save();
+                _context.Employees.Update(item);
             }
         }
 
@@ -129,7 +152,7 @@ namespace CompanyEmployees.Repositories
             }
 
             item.UpperEmployee = lowersTurnedString;
-            UpdateEmployee(item);
+            _context.Employees.Update(item);
             Save();
         }
 
@@ -149,29 +172,62 @@ namespace CompanyEmployees.Repositories
             }
 
             item.UpperEmployee = lowersTurnedString;
-            UpdateEmployee(item);
+            _context.Employees.Update(item);
             Save();
         }
 
-        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower, string recordNo)
+        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower, Employee employee)
         {
-            List<string> cikanlar = oldLower.Except(newLower).ToList();
-            List<string> girenler = newLower.Except(oldLower).ToList();
+            var empl = employee;
 
-            foreach(var cikan in cikanlar)
+            if (oldLower != null)
             {
-                CuttingRelationLowerEmployee(cikanlar);
+                List<string> cikanlar = null;
+                if (newLower != null)
+                    cikanlar = oldLower.Except(newLower).ToList();
+                else
+                    cikanlar = oldLower.ToList();
+
+                foreach (var cikan in cikanlar)
+                {
+                    CuttingRelationLowerEmployee(cikanlar);
+                }
             }
 
-            foreach(var giren in girenler)
+            if (newLower != null)
             {
-                var item = GetOneEmployeeByRecordNo(giren);
-                item.UpperEmployee = recordNo;
-                Save();
-            }
+                List<string> girenler = null;
+                if (oldLower != null)
+                    girenler = newLower.Except(oldLower).ToList();
+                else
+                    girenler = newLower.ToList();
 
+                foreach (var giren in girenler)
+                {
+                    var item = GetOneEmployeeByRecordNo(giren);
 
+                    List<string> lowList = null;
+                    if (item.LowerEmployee != null)
+                    {
+                        LowwerEmployeeListCreator(item.LowerEmployee).ToList();
+
+                        if (lowList.Contains(giren))
+                        {
+                            throw new Exception($"Your upper employee can not be your lower employee.({giren})");
+                        }
+                    }
+
+                    if (item.UpperEmployee != null)
+                    {
+                        throw new Exception($"This epmloyee already have a upper employee.({giren})");
+                    }  
+                    else
+                    {
+                        item.UpperEmployee = empl.RecordNo;
+                        _context.Employees.Update(item);
+                    }
+                }
+            }          
         }
-
     }
 }
