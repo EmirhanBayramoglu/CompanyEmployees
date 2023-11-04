@@ -168,17 +168,26 @@ namespace CompanyEmployees.Repositories
 
             foreach (var lower in lowerListForm)
             {
-                lowersTurnedString = lowersTurnedString + item + ".";
+                lowersTurnedString = lowersTurnedString + lower + ".";
             }
 
-            item.UpperEmployee = lowersTurnedString;
+            item.LowerEmployee = lowersTurnedString;
             _context.Employees.Update(item);
             Save();
         }
 
-        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower, Employee employee)
+        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee)
         {
             var empl = employee;
+
+            if (empl.UpperEmployee != oldUpper) 
+            {
+                if(oldUpper != null)
+                    CuttingRelationUpperEmployee(oldUpper, empl.RecordNo);
+                if (empl.UpperEmployee != null)
+                    AddingUpperEmployee(oldUpper, empl.RecordNo);
+
+            }
 
             if (oldLower != null)
             {

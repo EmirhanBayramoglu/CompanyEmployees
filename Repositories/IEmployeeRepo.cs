@@ -9,7 +9,7 @@ namespace CompanyEmployees.Repositories
         Employee GetOneEmployeeByRecordNo(string recordNo);
         public void AddEmployee(Employee employee);
         public void UpdateEmployee(Employee employee);
-        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower, Employee employee);
+        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee);
         IEnumerable<string> LowwerEmployeeListCreator(string LowerEmployees);
         public void Save();
 

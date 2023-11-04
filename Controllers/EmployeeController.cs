@@ -52,11 +52,13 @@ namespace CompanyEmployees.Controllers
 
             var oldList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
 
+            string oldUpper = item.UpperEmployee;
+
             _mapper.Map(employeeUpdateDto, item);
 
             var newList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
 
-            _repository.UpdateConfigration(oldList, newList, item);
+            _repository.UpdateConfigration(oldList, newList, oldUpper, item);
 
             _repository.UpdateEmployee(item);
             _repository.Save();
