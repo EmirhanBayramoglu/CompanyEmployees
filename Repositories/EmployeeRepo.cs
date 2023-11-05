@@ -104,11 +104,12 @@ namespace CompanyEmployees.Repositories
             //split every employee
             if (LowerEmployees != null)
             {
-                var employeeList = ((string)LowerEmployees).Split('.');
+                List<string> employeeList = ((string)LowerEmployees).Split('.').ToList();
+                employeeList.RemoveAll(item => string.IsNullOrEmpty(item));
 
                 foreach (var employee in employeeList)
                 {
-                    if (employee.Length != 11 && Regex.IsMatch(employee, pattern))
+                    if (employee.Length != 11 && Regex.IsMatch(employee, pattern) && employee.Length != 0)
                     {
                         throw new Exception("Some lowwer employees wrong.");
                     }
@@ -142,18 +143,27 @@ namespace CompanyEmployees.Repositories
             var item = GetOneEmployeeByRecordNo(upperEmployee);
 
             var lowerList = LowwerEmployeeListCreator(item.LowerEmployee);
-            List<string> lowerListForm = lowerList.ToList();
-            lowerListForm.Add(recordNumber);
-            string lowersTurnedString = null;
-
-            foreach(var lower in lowerListForm)
+            if(lowerList != null)
             {
-                lowersTurnedString = lowersTurnedString + item + ".";
-            }
+                List<string> lowerListForm = lowerList.ToList();  
+                lowerListForm.Add(recordNumber);
+                string lowersTurnedString = null;
 
-            item.UpperEmployee = lowersTurnedString;
-            _context.Employees.Update(item);
-            Save();
+                foreach(var lower in lowerListForm)
+                {
+                    lowersTurnedString = lowersTurnedString + lower + ".";
+                }
+
+                item.LowerEmployee = lowersTurnedString;
+                _context.Employees.Update(item);
+            }
+            else
+            {
+                item.LowerEmployee = recordNumber;
+                _context.Employees.Update(item);
+            }
+            
+
         }
 
         //bir çalışanın üst çalışanı silindiğinde, o üst çalışandan alt çalışanı çıkarma metodu
@@ -185,7 +195,7 @@ namespace CompanyEmployees.Repositories
                 if(oldUpper != null)
                     CuttingRelationUpperEmployee(oldUpper, empl.RecordNo);
                 if (empl.UpperEmployee != null)
-                    AddingUpperEmployee(oldUpper, empl.RecordNo);
+                    AddingUpperEmployee(empl.UpperEmployee, empl.RecordNo);
 
             }
 
