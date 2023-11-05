@@ -23,25 +23,33 @@ namespace CompanyEmployees.Repositories
         {
             if (employee == null)
             {
-                throw new ArgumentNullException(nameof(employee));
+                throw new Exception("You ."); ;
             }
             else
             {
-
+                //alphanumeric sayı kontrolü için pattern
                 string pattern = "^[a-zA-Z0-9]*$";
+                
+                //daha önce bu recordno ile bir çalışan kayıt edilmiş mi diye kontrol için alttaki işlem yapılıyor
                 var item = await GetOneEmployeeByRecordNo(employee.RecordNo);
-                if (Regex.IsMatch(employee.RecordNo, pattern) && item == null)
+
+
+                if (Regex.IsMatch(employee.RecordNo, pattern) && item == null && employee.RecordNo.Length ==11)
                 {
                     if (employee.LowerEmployee != null)
                     {
                         string lowEmp = employee.LowerEmployee;
                         var lowEmpList = await LowwerEmployeeListCreator(lowEmp);
+
+                        //eklenen elemanın her bir alt çalışanına gidip her birinin üst çalışanı güncellenir
                         AddingLowerEmployee(lowEmpList,employee);
                     }
-                        
+                    
+                    //üst çalışana gidilip onun alt çalışanına eklenir yeni eklenen çalışan
                     if (employee.UpperEmployee != null)
-                        AddingUpperEmployee(employee.UpperEmployee, employee.RecordNo);
-
+                        await AddingUpperEmployee(employee.UpperEmployee, employee.RecordNo);
+                    
+                    //ekleme işlemini yapıyoruz
                     _context.Employees.Add(employee);
                 }
                 else
@@ -52,29 +60,33 @@ namespace CompanyEmployees.Repositories
             
         }
 
+        //tüm çalışanları çağırma
         public async Task<IEnumerable<Employee>> GetAllEmployee()
         {
             return await _context.Employees.ToListAsync();
         }
 
+        //recordno ya göre istenen elemanı çağırma
         public async Task<Employee> GetOneEmployeeByRecordNo(string recordNo)
         {
             var item = await _context.Employees.FirstOrDefaultAsync(x => x.RecordNo == recordNo);
             return item;
         }
 
+        //update metodu
         public async Task UpdateEmployee(Employee employee)
         {
            _context.Employees.Update(employee);
             await Save();
         }
-
+        
+        //asenkron save metodu
         public async Task Save()
         {
             await _context.SaveChangesAsync();
         }
-
         
+        //alt çalışan olarak eklenen kişilerin hepsinin üst çalışanlarının güncellenmesi
         public void AddingLowerEmployee(IEnumerable<string> LowerEmployees, Employee employee)
         {
 
@@ -82,11 +94,13 @@ namespace CompanyEmployees.Repositories
             foreach(string lowerEmployee in LowerEmployees)
             {
                 var item =  GetOneEmployeeByRecordNo(lowerEmployee).Result;
-
+                
+                //kayıtlı üst çalışan kontrol
                 if (item.UpperEmployee != null)
                 {
                     throw new Exception($"This epmloyee already have a upper employee.({lowerEmployee})");
                 }
+                //üst çalışan olarak eklenmeye çalışan kişi kayıtlı alt elemanı mı kontrol
                 else if (item.LowerEmployee != null)
                 {
                     List<string> lowList = LowwerEmployeeListCreator(item.LowerEmployee).Result.ToList();
@@ -95,12 +109,14 @@ namespace CompanyEmployees.Repositories
                 }
                 else
                 {
+                    //eklenen alt elemanın üst eleman özelliğinin güncellenmesi
                     item.UpperEmployee = empl.RecordNo;
                     _context.Employees.Update(item);
                 }
             }
         }
 
+        //string olarak gönderilen alt çalışanları IEnumerable<string> yapar aynı zamanda kotrolleri de gerçekleştirir
         public async Task<IEnumerable<string>> LowwerEmployeeListCreator(string LowerEmployees)
         {
             string pattern = "^[a-zA-Z0-9]*$";
@@ -188,6 +204,7 @@ namespace CompanyEmployees.Repositories
             _context.Employees.Update(item);
         }
 
+        //update için ayarlamalar
         public async Task UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee)
         {
             var empl = employee;
@@ -201,7 +218,7 @@ namespace CompanyEmployees.Repositories
                     await AddingUpperEmployee(empl.UpperEmployee, empl.RecordNo);
 
             }
-
+            //alt elemanlardaki farklılıkları bulur farklılığa göre işlemleri gerçekleştirir (giren ve çıkanları bulur)
             if (oldLower != null)
             {
                 List<string> cikanlar = null;
