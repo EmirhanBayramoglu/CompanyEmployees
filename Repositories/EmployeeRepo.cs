@@ -2,6 +2,7 @@
 using CompanyEmployees.Dto;
 using CompanyEmployees.Entities.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -18,7 +19,7 @@ namespace CompanyEmployees.Repositories
 
         }
 
-        public void AddEmployee(Employee employee)
+        public async Task AddEmployee(Employee employee)
         {
             if (employee == null)
             {
@@ -28,20 +29,20 @@ namespace CompanyEmployees.Repositories
             {
 
                 string pattern = "^[a-zA-Z0-9]*$";
-
-                if(Regex.IsMatch(employee.RecordNo, pattern) && GetOneEmployeeByRecordNo(employee.RecordNo) == null)
+                var item = await GetOneEmployeeByRecordNo(employee.RecordNo);
+                if (Regex.IsMatch(employee.RecordNo, pattern) && item == null)
                 {
                     if (employee.LowerEmployee != null)
                     {
                         string lowEmp = employee.LowerEmployee;
-                        var lowEmpList = LowwerEmployeeListCreator(lowEmp);
+                        var lowEmpList = await LowwerEmployeeListCreator(lowEmp);
                         AddingLowerEmployee(lowEmpList,employee);
                     }
                         
                     if (employee.UpperEmployee != null)
                         AddingUpperEmployee(employee.UpperEmployee, employee.RecordNo);
 
-                    _context.Employees.Add(employee);  
+                    _context.Employees.Add(employee);
                 }
                 else
                 {
@@ -51,24 +52,26 @@ namespace CompanyEmployees.Repositories
             
         }
 
-        public IEnumerable<Employee> GetAllEmployee()
+        public async Task<IEnumerable<Employee>> GetAllEmployee()
         {
-            return _context.Employees.ToList();
+            return await _context.Employees.ToListAsync();
         }
 
-        public Employee GetOneEmployeeByRecordNo(string recordNo)
+        public async Task<Employee> GetOneEmployeeByRecordNo(string recordNo)
         {
-            return _context.Employees.FirstOrDefault(x => x.RecordNo == recordNo);
+            var item = await _context.Employees.FirstOrDefaultAsync(x => x.RecordNo == recordNo);
+            return item;
         }
 
-        public void UpdateEmployee(Employee employee)
+        public async Task UpdateEmployee(Employee employee)
         {
-            _context.Employees.Update(employee);
+           _context.Employees.Update(employee);
+            await Save();
         }
 
-        public void Save()
+        public async Task Save()
         {
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         
@@ -78,7 +81,7 @@ namespace CompanyEmployees.Repositories
             var empl = employee;
             foreach(string lowerEmployee in LowerEmployees)
             {
-                var item = GetOneEmployeeByRecordNo(lowerEmployee);
+                var item =  GetOneEmployeeByRecordNo(lowerEmployee).Result;
 
                 if (item.UpperEmployee != null)
                 {
@@ -86,7 +89,7 @@ namespace CompanyEmployees.Repositories
                 }
                 else if (item.LowerEmployee != null)
                 {
-                    List<string> lowList = LowwerEmployeeListCreator(item.LowerEmployee).ToList();
+                    List<string> lowList = LowwerEmployeeListCreator(item.LowerEmployee).Result.ToList();
                     if (lowList.Contains(lowerEmployee))   
                         throw new Exception($"Your upper employee can not be your lower employee.({lowerEmployee})");
                 }
@@ -98,7 +101,7 @@ namespace CompanyEmployees.Repositories
             }
         }
 
-        public IEnumerable<string> LowwerEmployeeListCreator(string LowerEmployees)
+        public async Task<IEnumerable<string>> LowwerEmployeeListCreator(string LowerEmployees)
         {
             string pattern = "^[a-zA-Z0-9]*$";
             //split every employee
@@ -127,22 +130,22 @@ namespace CompanyEmployees.Repositories
         }
 
         //bütün alt çalışanlar silinince, o alt çalışanların üstleri silinir
-        public void CuttingRelationLowerEmployee(IEnumerable<string> LowerEmployees)
+        public async Task CuttingRelationLowerEmployee(IEnumerable<string> LowerEmployees)
         {
             foreach(var employee in LowerEmployees)
             {
-                var item = GetOneEmployeeByRecordNo(employee);
+                var item = await GetOneEmployeeByRecordNo(employee);
                 item.UpperEmployee = null;
                 _context.Employees.Update(item);
             }
         }
 
         //üst olarak eklenen çalışanın, kime üst eklendiyse o çalışanı üstün alt eleman kısmına ekleme
-        public void AddingUpperEmployee(string upperEmployee, string recordNumber)
+        public async Task AddingUpperEmployee(string upperEmployee, string recordNumber)
         {
-            var item = GetOneEmployeeByRecordNo(upperEmployee);
+            var item = await GetOneEmployeeByRecordNo(upperEmployee);
 
-            var lowerList = LowwerEmployeeListCreator(item.LowerEmployee);
+            var lowerList = await LowwerEmployeeListCreator(item.LowerEmployee);
             if(lowerList != null)
             {
                 List<string> lowerListForm = lowerList.ToList();  
@@ -167,11 +170,11 @@ namespace CompanyEmployees.Repositories
         }
 
         //bir çalışanın üst çalışanı silindiğinde, o üst çalışandan alt çalışanı çıkarma metodu
-        public void CuttingRelationUpperEmployee(string upperEmployee, string recordNumber)
+        public async Task CuttingRelationUpperEmployee(string upperEmployee, string recordNumber)
         {
-            var item = GetOneEmployeeByRecordNo(upperEmployee);
+            var item = await GetOneEmployeeByRecordNo(upperEmployee);
 
-            var lowerList = LowwerEmployeeListCreator(item.LowerEmployee);
+            var lowerList = await LowwerEmployeeListCreator(item.LowerEmployee);
             List<string> lowerListForm = lowerList.ToList();
             lowerListForm.Remove(recordNumber);
             string lowersTurnedString = null;
@@ -183,19 +186,19 @@ namespace CompanyEmployees.Repositories
 
             item.LowerEmployee = lowersTurnedString;
             _context.Employees.Update(item);
-            Save();
         }
 
-        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee)
+        public async Task UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee)
         {
             var empl = employee;
 
+            //üst elemanın değişikliğinin kontrolü
             if (empl.UpperEmployee != oldUpper) 
             {
                 if(oldUpper != null)
-                    CuttingRelationUpperEmployee(oldUpper, empl.RecordNo);
-                if (empl.UpperEmployee != null)
-                    AddingUpperEmployee(empl.UpperEmployee, empl.RecordNo);
+                    await CuttingRelationUpperEmployee(oldUpper, empl.RecordNo);
+                if(empl.UpperEmployee != null)
+                    await AddingUpperEmployee(empl.UpperEmployee, empl.RecordNo);
 
             }
 
@@ -209,7 +212,7 @@ namespace CompanyEmployees.Repositories
 
                 foreach (var cikan in cikanlar)
                 {
-                    CuttingRelationLowerEmployee(cikanlar);
+                    await CuttingRelationLowerEmployee(cikanlar);
                 }
             }
 
@@ -223,12 +226,12 @@ namespace CompanyEmployees.Repositories
 
                 foreach (var giren in girenler)
                 {
-                    var item = GetOneEmployeeByRecordNo(giren);
+                    var item = await GetOneEmployeeByRecordNo(giren);
 
                     List<string> lowList = null;
                     if (item.LowerEmployee != null)
                     {
-                        LowwerEmployeeListCreator(item.LowerEmployee).ToList();
+                        lowList = LowwerEmployeeListCreator(item.LowerEmployee).Result.ToList();
 
                         if (lowList.Contains(giren))
                         {
@@ -243,7 +246,7 @@ namespace CompanyEmployees.Repositories
                     else
                     {
                         item.UpperEmployee = empl.RecordNo;
-                        _context.Employees.Update(item);
+                         _context.Employees.Update(item);
                     }
                 }
             }          

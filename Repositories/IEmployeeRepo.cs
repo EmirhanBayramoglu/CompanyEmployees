@@ -5,13 +5,13 @@ namespace CompanyEmployees.Repositories
 {
     public interface IEmployeeRepo
     {
-        IEnumerable<Employee> GetAllEmployee();
-        Employee GetOneEmployeeByRecordNo(string recordNo);
-        public void AddEmployee(Employee employee);
-        public void UpdateEmployee(Employee employee);
-        public void UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee);
-        IEnumerable<string> LowwerEmployeeListCreator(string LowerEmployees);
-        public void Save();
+        Task<IEnumerable<Employee>> GetAllEmployee();
+        Task<Employee> GetOneEmployeeByRecordNo(string recordNo);
+        public Task AddEmployee(Employee employee);
+        public Task UpdateEmployee(Employee employee);
+        public Task UpdateConfigration(IEnumerable<string> oldLower, IEnumerable<string> newLower,string oldUpper ,Employee employee);
+        Task<IEnumerable<string>> LowwerEmployeeListCreator(string LowerEmployees);
+        public Task Save();
 
     }
 }

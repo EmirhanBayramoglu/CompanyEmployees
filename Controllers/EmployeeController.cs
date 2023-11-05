@@ -20,48 +20,47 @@ namespace CompanyEmployees.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Employee>> GetAllEmployee()
+        public async Task<ActionResult> GetAllEmployee()
         {
-            var items = _repository.GetAllEmployee();
+            var items = await _repository.GetAllEmployee();
 
             return Ok(_mapper.Map<IEnumerable<EmployeeDto>>(items));
         }
 
         [HttpGet("{RecordNo}")]
-        public ActionResult<EmployeeDto> GetOneEmployee(string RecordNo)
+        public async Task<ActionResult<EmployeeDto>> GetOneEmployee(string RecordNo)
         {
-            var item = _repository.GetOneEmployeeByRecordNo(RecordNo);
+            var item = await _repository.GetOneEmployeeByRecordNo(RecordNo);
 
             return Ok(_mapper.Map<EmployeeDto>(item));
         }
 
         [HttpPost]
-        public ActionResult<Employee> AddEmployee([FromBody]Employee employee)
+        public async Task<ActionResult<Employee>> AddEmployee([FromBody]Employee employee)
         {
             
-            _repository.AddEmployee(employee);
-            _repository.Save();
+            await _repository.AddEmployee(employee);
+            await _repository.Save();
 
             return Ok();
         }
 
         [HttpPut("{RecordNo}")]
-        public ActionResult UpdateEmployee(string recordNo,EmployeeUpdateDto employeeUpdateDto)
+        public async Task<ActionResult> UpdateEmployee(string recordNo,EmployeeUpdateDto employeeUpdateDto)
         {
-            var item = _repository.GetOneEmployeeByRecordNo(recordNo);
+            var item = await _repository.GetOneEmployeeByRecordNo(recordNo);
 
-            var oldList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
+            var oldList = await _repository.LowwerEmployeeListCreator(item.LowerEmployee);
 
             string oldUpper = item.UpperEmployee;
 
             _mapper.Map(employeeUpdateDto, item);
 
-            var newList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
+            var newList = await _repository.LowwerEmployeeListCreator(item.LowerEmployee);
 
-            _repository.UpdateConfigration(oldList, newList, oldUpper, item);
+            await _repository.UpdateConfigration(oldList, newList, oldUpper, item);
 
-            _repository.UpdateEmployee(item);
-            _repository.Save();
+            await _repository.UpdateEmployee(item);
 
             return Ok();
         }
