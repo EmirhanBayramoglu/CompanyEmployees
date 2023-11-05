@@ -36,11 +36,9 @@ namespace CompanyEmployees.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LowerEmployee")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UpperEmployee")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RecordNo");

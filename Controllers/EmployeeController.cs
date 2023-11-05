@@ -1,4 +1,6 @@
-﻿using CompanyEmployees.Entities.Models;
+﻿using AutoMapper;
+using CompanyEmployees.Dto;
+using CompanyEmployees.Entities.Models;
 using CompanyEmployees.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,31 +10,63 @@ namespace CompanyEmployees.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private readonly EmployeeRepo _repository = new EmployeeRepo();
+        private readonly IEmployeeRepo _repository;
+        private readonly IMapper _mapper;
+
+        public EmployeeController(IEmployeeRepo repository, IMapper mapper)
+        {
+            _repository = repository;
+            _mapper = mapper;
+        }
 
         [HttpGet]
-        public ActionResult <IEnumerable<Employee>> GetAllEmployee()
+        public ActionResult<IEnumerable<Employee>> GetAllEmployee()
         {
-            var items  =  _repository.GetAllEmployee();
+            var items = _repository.GetAllEmployee();
 
-            return Ok(items);
+            return Ok(_mapper.Map<IEnumerable<EmployeeDto>>(items));
         }
 
         [HttpGet("{RecordNo}")]
-        public ActionResult <Employee> GetOneEmployee(string RecordNo)
+        public ActionResult<EmployeeDto> GetOneEmployee(string RecordNo)
         {
             var item = _repository.GetOneEmployeeByRecordNo(RecordNo);
-            
-            return Ok(item);
+
+            return Ok(_mapper.Map<EmployeeDto>(item));
         }
 
         [HttpPost]
-        public ActionResult<Employee> AddEmployee(Employee employee)
+        public ActionResult<Employee> AddEmployee([FromBody]Employee employee)
         {
+            
             _repository.AddEmployee(employee);
+            _repository.Save();
 
             return Ok();
         }
+
+        [HttpPut("{RecordNo}")]
+        public ActionResult UpdateEmployee(string recordNo,EmployeeUpdateDto employeeUpdateDto)
+        {
+            var item = _repository.GetOneEmployeeByRecordNo(recordNo);
+
+            var oldList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
+
+            string oldUpper = item.UpperEmployee;
+
+            _mapper.Map(employeeUpdateDto, item);
+
+            var newList = _repository.LowwerEmployeeListCreator(item.LowerEmployee);
+
+            _repository.UpdateConfigration(oldList, newList, oldUpper, item);
+
+            _repository.UpdateEmployee(item);
+            _repository.Save();
+
+            return Ok();
+        }
+
+
 
     }
 }
